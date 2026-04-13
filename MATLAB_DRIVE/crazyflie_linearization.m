@@ -5,9 +5,7 @@ m = 0.029;          % Massa do Crazyflie (kg)
 g = 9.81;           % Aceleração da gravidade (m/s^2)
 
 % Coeficiente de arrasto aerodinâmico (c_Dx).
-% NOTA: Substituam este valor pelo vosso coeficiente real caso o tenham 
-% calculado. Se não, este é um valor de magnitude típica para pequenos drones.
-c_Dx = 1.0e-3;      
+c_Dx = 1.32e-4;      
 
 %% 2. Matriz A para OP.1 (Hover)
 % Condições de equilíbrio: v_e = 0, lambda_e = 0, w_e = 0
@@ -27,11 +25,10 @@ A_OP1 = [zeros(3), A12_op1,  zeros(3), zeros(3);
 
 %% 3. Matriz A para OP.2 (Horizontal Flight)
 % Escolha de uma velocidade de equilíbrio adequada (ex: 2 m/s)
-U = 2.0; % m/s
+V = 2.0; % m/s
 
 % Cálculo do ângulo de pitch de equilíbrio (theta_e)
-% Para compensar o arrasto a esta velocidade: sin(theta_e) = (c_Dx * U^2) / (m * g)
-sin_theta_e = (c_Dx * U^2) / (m * g);
+sin_theta_e = (c_Dx * V^2) / (m * g);
 theta_e = asin(sin_theta_e);
 
 % Blocos 3x3 não nulos do OP.2
@@ -39,11 +36,11 @@ A12_op2 = [cos(theta_e), 0,  sin(theta_e);
            0,            1,  0;
           -sin(theta_e), 0,  cos(theta_e)];
 
-A13_op2 = [0, -U*sin(theta_e), 0;
-           0,  0,              U*cos(theta_e);
-           0, -U*cos(theta_e), 0];
+A13_op2 = [0, -V*sin(theta_e), 0;
+           0,  0,              V*cos(theta_e);
+           0, -V*cos(theta_e), 0];
 
-A22_op2 = [-(2*c_Dx*U)/m, 0, 0;
+A22_op2 = [-(2*c_Dx*V)/m, 0, 0;
            0,             0, 0;
            0,             0, 0];
 
@@ -52,8 +49,8 @@ A23_op2 = [0,              g*cos(theta_e), 0;
            0,              g*sin(theta_e), 0];
 
 A24_op2 = [0,  0,  0;
-           0,  0, -U;
-           0,  U,  0];
+           0,  0,  V;
+           0, -V,  0];
 
 A34_op2 = [1,  0,  tan(theta_e);
            0,  1,  0;
@@ -73,7 +70,7 @@ eig_OP2 = eig(A_OP2);
 disp('--- Valores Próprios para OP.1 (Hover) ---');
 disp(eig_OP1);
 
-disp('--- Valores Próprios para OP.2 (Horizontal Flight, U=2m/s) ---');
+disp('--- Valores Próprios para OP.2 (Horizontal Flight, V=2m/s) ---');
 disp(eig_OP2);
 
 %% 5. Representação Gráfica (Plot no Plano Complexo)
@@ -96,10 +93,9 @@ ylabel('Eixo Imaginário (Im)');
 title('Eigenvalues Map');
 legend([p1, p2], {'OP.1 (Hover)', 'OP.2 (Horizontal Flight)'}, 'Location', 'best');
 
-% Ajustar limites para melhorar a visualização (depende dos valores)
-axis([-1 1 -15 15]); % Podes ajustar estes limites se os pontos ficarem fora do gráfico
+% Ajustar limites para melhorar a visualização
+axis([-1 1 -15 15]); 
 hold off;
-
 
 %% --- Matriz B (Igual para OP1 e OP2) ---
 % Valores de Inércia do vosso relatório (em kg*m^2)
@@ -122,23 +118,19 @@ B_OP = [zeros(3,4);
         zeros(3,4); 
         B4];
 
-
-% --- 1.9 Controlabilidade e Observabilidade ---
-% (Atenção: garante que a matriz B do OP1 e OP2 já está construída no script)
-% B_OP = [zeros(3,4); B2; zeros(3,4); B4]; % Conforme o vosso relatório
-
+%% --- 1.9 Controlabilidade e Observabilidade ---
 C = eye(12); % Matriz Identidade 12x12 (porque y = x)
 n = 12;      % Número de estados
 
-% 3. Cálculo para o OP.1 (Hover)
+% Cálculo para o OP.1 (Hover)
 rank_C1 = rank(ctrb(A_OP1, B_OP));
 rank_O1 = rank(obsv(A_OP1, C));
 
-% 4. Cálculo para o OP.2 (Horizontal Flight)
+% Cálculo para o OP.2 (Horizontal Flight)
 rank_C2 = rank(ctrb(A_OP2, B_OP));
 rank_O2 = rank(obsv(A_OP2, C));
 
-% 5. Exibição dos Resultados na Command Window
+% Exibição dos Resultados na Command Window
 disp('--- 1.9 Controlabilidade e Observabilidade ---');
 fprintf('OP1 (Hover) -> Rank Controllability: %d | Rank Observability: %d\n', rank_C1, rank_O1);
 fprintf('OP2 (Horiz) -> Rank Controllability: %d | Rank Observability: %d\n', rank_C2, rank_O2);
