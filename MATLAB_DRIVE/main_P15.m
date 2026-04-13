@@ -4,7 +4,7 @@ clear; clc; close all;
 params.m  = 0.027;                 % mass [kg] (Crazyflie 2.1 approx.)
 params.g  = 9.81;                  % gravity [m/s^2]
 
-% Inertia matrix [kg.m^2] (approximate values, adjust if you found better ones)
+% Inertia matrix [kg.m^2] (approximate values)
 params.J  = diag([1.4e-5 1.4e-5 2.17e-5]);
 
 % Geometry
@@ -12,7 +12,7 @@ params.l     = 0.0397;             % distance from CoM to rotor [m]
 params.alpha = pi/4;               % 45 deg arm geometry
 
 % Rotor drag/thrust ratio for yaw moment
-params.kQ_kT = 0.006;              % adjust if you found a better value
+params.kQ_kT = 0.006;              
 
 % Aerodynamic drag coefficients in body axes
 params.cDx = 0.0;
