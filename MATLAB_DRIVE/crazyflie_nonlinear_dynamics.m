@@ -73,7 +73,6 @@ f_p = [0; 0; T_total];
 
 %% 3) Moments from propulsion
 
-% Using your report expressions
 n_x = l*sin(alpha) * (-T1 - T2 + T3 + T4);
 n_y = l*cos(alpha) * (-T1 + T2 + T3 - T4);
 n_z = kQ_kT * (-T1 + T2 - T3 + T4);
