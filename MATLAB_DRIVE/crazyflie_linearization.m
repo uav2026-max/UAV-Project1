@@ -24,7 +24,7 @@ A_OP1 = [zeros(3), A12_op1,  zeros(3), zeros(3);
          zeros(3), zeros(3), zeros(3), zeros(3)];
 
 %% 3. Matriz A para OP.2 (Horizontal Flight)
-% Escolha de uma velocidade de equilíbrio adequada (ex: 2 m/s)
+% Escolha de uma velocidade de equilíbrio adequada 
 V = 2.0; % m/s
 
 % Cálculo do ângulo de pitch de equilíbrio (theta_e)
@@ -93,12 +93,11 @@ ylabel('Eixo Imaginário (Im)');
 title('Eigenvalues Map');
 legend([p1, p2], {'OP.1 (Hover)', 'OP.2 (Horizontal Flight)'}, 'Location', 'best');
 
-% Ajustar limites para melhorar a visualização
 axis([-1 1 -15 15]); 
 hold off;
 
 %% --- Matriz B (Igual para OP1 e OP2) ---
-% Valores de Inércia do vosso relatório (em kg*m^2)
+% Valores de Inércia (em kg*m^2)
 Jx = 1.329e-5;
 Jy = 1.333e-5;
 Jz = 2.640e-5;
@@ -119,6 +118,7 @@ B_OP = [zeros(3,4);
         B4];
 
 %% --- 1.9 Controlabilidade e Observabilidade ---
+
 C = eye(12); % Matriz Identidade 12x12 (porque y = x)
 n = 12;      % Número de estados
 
