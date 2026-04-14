@@ -57,30 +57,60 @@ xlabel('Time [s]')
 legend('z','z_{ref}')
 title('Position along Z axis')
 
-figure;
-subplot(3,1,1)
-plot(t, vel(1,:))
-ylabel('v_x [m/s]')
-title('Velocity along X')
-xlabel('Time [s]')
-subplot(3,1,2)
-plot(t, vel(2,:))
-ylabel('v_y [m/s]')
-title('Velocity along Y')
+%% --- Alínea 2.2: Gráficos dos Inputs ---
+figure('Name', 'Control Inputs', 'Color', 'w');
 
-subplot(3,1,3)
-plot(t, vel(3,:))
-ylabel('v_z [m/s]')
-xlabel('Time [s]')
-title('Velocity along Z')
+% Input Eixo X (Pitch - theta)
+subplot(3,1,1);
+plot(t, lbd(2,:)*180/pi, 'm', 'LineWidth', 1); % Convertido para graus
+ylabel('\theta (Pitch) [deg]');
+title('Control Inputs ao longo do tempo');
+grid on;
+
+% Input Eixo Y (Roll - phi)
+subplot(3,1,2);
+plot(t, lbd(1,:)*180/pi, 'g', 'LineWidth', 1); % Convertido para graus
+ylabel('\phi (Roll) [deg]');
+grid on;
+
+% Input Eixo Z (Thrust)
+% Vamos plotar o comando normalizado do motor 1 como representação do Thrust
+subplot(3,1,3);
+plot(t, u(1,:), 'k', 'LineWidth', 1); 
+ylabel('Thrust (Norm)');
+xlabel('Time [s]');
+grid on;
+
 % convert date to print format
-t = time - time(1);
+t = t - t(1); 
 x = [pos;vel;lbd;om];
 x_ref = [pos_ref;0*vel;lbd*0;om*0];
 x_ref(9,:) = yaw_ref;
 uint16_max = 2^16;
 u = motors/uint16_max;
-a
+
+% Trajetória 3D (Alínea 2.1) ---
+figure('Name', 'Trajetória 3D do Drone', 'Color', 'w');
+% trajetória real (azul) e a referência (vermelho tracejado)
+plot3(pos(1,:), pos(2,:), pos(3,:), 'b', 'LineWidth', 1.5);
+hold on;
+plot3(pos_ref(1,:), pos_ref(2,:), pos_ref(3,:), 'r--', 'LineWidth', 1);
+
+% pontos de Início (Verde) e Fim (Vermelho)
+plot3(pos(1,1), pos(2,1), pos(3,1), 'go', 'MarkerFaceColor', 'g'); 
+plot3(pos(1,end), pos(2,end), pos(3,end), 'ro', 'MarkerFaceColor', 'r'); 
+
+grid on;
+xlabel('p_x [m]');
+ylabel('p_y [m]');
+zlabel('p_z [m]');
+title('Vehicle Trajectory 3D');
+legend('Simulado/Real', 'Referência', 'Início', 'Fim', 'Location', 'best');
+view(3); % perspetiva em 3D
+pbaspect([1 1 2.5]); % Proporção visual [X Y Z]
+hold off;
+% ----------------------------------------------
+
 % plot data
 initPlots;
 vehicle3d_ref_show_data(t,x,u,x_ref);
@@ -88,7 +118,35 @@ vehicle3d_ref_show_data(t,x,u,x_ref);
 % prepare data for ID
 % dt = diff(t);
 % dt = [dt,dt(end)];
-% sample_time_stats = [mean(dt),min(dt),max(dt)],
+% sample_time_stats = [mean(dt),min(dt),max(dt)];
 % Ts = sample_time_stats(1);
+
 u_id = lbd(1,:)';
 y_id = pos(2,:)';
+
+
+%% --- Preparaçao de Dados para a Alínea 2.3 (System Identification) ---
+
+% 1. Encontrar os índices exatos para cada intervalo de tempo da secção 2.1
+idx_z = find(t >= 80 & t <= 125);
+idx_x = find(t >= 130 & t <= 155);
+idx_y = find(t >= 155 & t <= 185);
+
+% Obter o tempo de amostragem médio (Ts) para usar na Toolbox
+Ts = mean(diff(t));
+
+% 2. Isolar os Inputs e Outputs (em formato coluna transposta ' )
+% Eixo Z (Input: Thrust/u1 , Output: p_z)
+% Nota: assumindo que u(1,:) tem a informação de thrust principal do log
+u_z = u(1, idx_z)'; 
+y_z = pos(3, idx_z)';
+
+% Eixo X (Input: Pitch/theta , Output: p_x)
+u_x = lbd(2, idx_x)'; 
+y_x = pos(1, idx_x)';
+
+% Eixo Y (Input: Roll/phi , Output: p_y)
+u_y = lbd(1, idx_y)'; 
+y_y = pos(2, idx_y)';
+
+disp('Dados recortados com sucesso! Escreve "systemIdentification" na Command Window.');
